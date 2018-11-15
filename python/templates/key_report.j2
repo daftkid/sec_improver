@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>IAM Key Scanner Report page</title>
+    <link rel="stylesheet" type="text/css" href="https://codepen.io/daftkid/pen/ZmKPrK.css">
+</head>
+<body>
+<h1>Report collected for {{ time }}</h1>
+<table class="report_table">
+
+{% for key_id in data %}
+<tr>
+  <td>
+    <p>{{ key_id }} </p>
+  </td>
+</tr>
+{% endfor %}
+
+</table>
+</body>
+</html>

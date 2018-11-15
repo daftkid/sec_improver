@@ -3,7 +3,7 @@ import json
 from os import environ
 from botocore import exceptions
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
-from jinja2 import Template
+from jinja2 import Template, Environment, FileSystemLoader
 
 TOOLS = {
     'key_scanner': '',
@@ -113,3 +113,12 @@ def warn(msg):
 
 def print_separator():
     print('===========================================')
+
+
+def render_template_keys(path, data):
+    env = Environment(loader=FileSystemLoader(searchpath='./templates/'))
+    template = env.get_template('key_report.j2')
+
+    render_template = template.render(data=data)
+    with open(path, 'w') as result_file:
+        result_file.write(render_template)

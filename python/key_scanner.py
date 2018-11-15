@@ -53,6 +53,8 @@ def scanner(opts):
             info('Key ID: {}'.format(key))
         print_separator()
 
+    render_template_keys(output, keys)
+
 
 if __name__ == '__main__':
     opts = options_parser(TOOL_NAME).parse_args()
