@@ -19,6 +19,14 @@ def scanner(opts):
 
     debug_mode = opts.debug
 
+    input = opts.input
+    output = opts.output
+    enforce = opts.enforce
+
+    if enforce:
+        if not input:
+            error('Please specify value for `input` parameter while using `enforce` option')
+
     # Reading environment variables
     if debug_mode: info('Reading ENV vars')
     env = read_env()
@@ -26,6 +34,24 @@ def scanner(opts):
     # Create session for accessing cloud account
     if debug_mode: info('Creating session')
     session = create_cloud_session(env)
+
+    # Listing all Users in account
+    if debug_mode: info('Getting list of all users')
+    users = get_list_of_users(session)
+    if debug_mode:
+        print_separator()
+        for user in users:
+            info('UserName: {}'.format(user))
+        print_separator()
+
+    # Listing all IAM keys in account
+    if debug_mode: info('Getting list of keys')
+    keys = get_list_of_keys(session, users)
+    if debug_mode:
+        print_separator()
+        for key in keys:
+            info('Key ID: {}'.format(key))
+        print_separator()
 
 
 if __name__ == '__main__':

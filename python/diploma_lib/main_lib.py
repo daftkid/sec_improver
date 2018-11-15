@@ -54,8 +54,45 @@ def options_parser(tool):
     return parser
 
 
-def get_list_of_keys(session):
-    pass
+def get_list_of_users(session):
+    try:
+        iam = session.client('iam')
+
+        paginator = iam.get_paginator('list_users')
+        pages = paginator.paginate()
+
+        users = []
+
+        for page in pages:
+            for user in page['Users']:
+                users.append(user['UserName'])
+
+        return users
+
+    except Exception as e:
+        error(e)
+
+
+def get_list_of_keys(session, users):
+    try:
+        iam = session.client('iam')
+
+        resp = []
+        res = []
+
+        for username in users:
+            resp.extend(iam.list_access_keys(
+                UserName=username
+            )['AccessKeyMetadata'])
+
+        for item in resp:
+            res.append(item['AccessKeyId'])
+
+        return res
+    except KeyError as e:
+        error('Wrong key: {}'.format(e))
+    except exceptions.ClientError as e:
+        error(e)
 
 
 def error(msg):
@@ -72,3 +109,7 @@ def info(msg):
 def warn(msg):
     banner = '[ WARN  ]'
     print('{} {}'.format(banner, msg))
+
+
+def print_separator():
+    print('===========================================')
