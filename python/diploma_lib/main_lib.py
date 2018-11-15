@@ -3,6 +3,7 @@ import json
 from os import environ
 from botocore import exceptions
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
+from jinja2 import Template
 
 TOOLS = {
     'key_scanner': '',
