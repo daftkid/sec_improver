@@ -4,6 +4,7 @@ from os import environ
 from botocore import exceptions
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 from jinja2 import Template, Environment, FileSystemLoader
+from datetime import datetime
 
 TOOLS = {
     'key_scanner': '',
@@ -86,13 +87,24 @@ def get_list_of_keys(session, users):
             )['AccessKeyMetadata'])
 
         for item in resp:
-            res.append(item['AccessKeyId'])
+            temp = {}
+            temp['key_id'] = item['AccessKeyId']
+            temp['username'] = item['UserName']
+            temp['status'] = item['Status']
+            temp['date_created'] = item['CreateDate']
+            temp['key_age'] = 'test'#calc_key_age(item['CreateDate'])
+            res.append(temp)
 
         return res
     except KeyError as e:
         error('Wrong key: {}'.format(e))
     except exceptions.ClientError as e:
         error(e)
+
+
+def calc_key_age(timestamp):
+    now = datetime.utcnow()
+    return now - timestamp
 
 
 def error(msg):
