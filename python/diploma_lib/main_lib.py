@@ -131,6 +131,6 @@ def render_template_keys(path, data):
     env = Environment(loader=FileSystemLoader(searchpath='./templates/'))
     template = env.get_template('key_report.j2')
 
-    render_template = template.render(data=data)
+    render_template = template.render(data=data, time=datetime.strftime(datetime.now(), '%x %X'))
     with open(path, 'w') as result_file:
         result_file.write(render_template)

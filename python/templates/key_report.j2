@@ -5,42 +5,42 @@
     <link rel="stylesheet" type="text/css" href="https://codepen.io/daftkid/pen/ZmKPrK.css">
 </head>
 <body>
-<div class="wrapper">
-<h1>Report collected for {{ time }}</h1>
-<table class="report_table">
-  <tr>
-    <th>#</th>
-    <th>Key ID</th>
-    <th>User Name</th>
-    <th>Date Created</th>
-    <th>Key Age (days)</th>
-    <th>Last used</th>
-  </tr>
-
-{% for row in data %}
-<tr>
-  <td>
-    <p>{{ loop.index }}</p>
-  </td>
-  <td>
-    <p>{{ row['key_id'] }} </p>
-  </td>
-  <td>
-    <p>{{ row['username'] }} </p>
-  </td>
-  <td>
-    <p>{{ row['date_created'] }} </p>
-  </td>
-  <td>
-    <p>{{ row['key_age'] }} </p>
-  </td>
-  <td>
-    <p>{{ row['status'] }} </p>
-  </td>
-</tr>
-{% endfor %}
-
-</table>
-</div>
+    <div class="wrapper">
+        <h1>Report collected for {{ time }}</h1>
+    </div>
+    <div>
+        <table class="report_table">
+          <tr>
+            <th>#</th>
+            <th>Key ID</th>
+            <th>User Name</th>
+            <th>Date Created</th>
+            <th>Key Age (days)</th>
+            <th>Last used</th>
+          </tr>
+            {% for row in data %}
+            <tr>
+              <td>
+                <p>{{ loop.index }}</p>
+              </td>
+              <td>
+                <p>{{ row['key_id'] }} </p>
+              </td>
+              <td>
+                <p>{{ row['username'] }} </p>
+              </td>
+              <td>
+                <p>{{ row['date_created'] }} </p>
+              </td>
+              <td>
+                <p>{{ row['key_age'] }} </p>
+              </td>
+              <td>
+                <p>{{ row['status'] }} </p>
+              </td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
 </body>
 </html>
