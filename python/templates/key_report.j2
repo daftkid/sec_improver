@@ -7,6 +7,10 @@
 <body>
     <div class="wrapper">
         <h1>Report collected for {{ time }}</h1>
+        <h3>Parameters:</h3>
+        {% for parameter in parameters %}
+        <h5>{{ parameter['name'] }} : {{ parameter['value']}}</h5>
+        {% endfor %}
     </div>
     <div>
         <table class="report_table">
@@ -16,27 +20,39 @@
             <th>User Name</th>
             <th>Date Created</th>
             <th>Key Age (days)</th>
+            <th>Status</th>
             <th>Last used</th>
+            <th>Recommended Action</th>
           </tr>
             {% for row in data %}
+            {% if row['action'] == "Remove"%}
+            <tr class="expired">
+            {% else %}
             <tr>
+            {% endif %}
               <td>
-                <p>{{ loop.index }}</p>
+                {{ loop.index }}
               </td>
               <td>
-                <p>{{ row['key_id'] }} </p>
+                {{ row['key_id'] }}
               </td>
               <td>
-                <p>{{ row['username'] }} </p>
+                {{ row['username'] }}
               </td>
               <td>
-                <p>{{ row['date_created'] }} </p>
+                {{ row['date_created'] }}
               </td>
               <td>
-                <p>{{ row['key_age'] }} </p>
+                {{ row['key_age'] }}
               </td>
               <td>
-                <p>{{ row['status'] }} </p>
+                {{ row['status'] }}
+              </td>
+              <td>
+                {{ row['last_used'] }}
+              </td>
+              <td>
+                {{ row['action'] }}
               </td>
             </tr>
             {% endfor %}
