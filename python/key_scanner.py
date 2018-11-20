@@ -8,6 +8,7 @@ __version__ = '0.0.1'
 from diploma_lib.main_lib import *
 
 TOOL_NAME = 'key_scanner'
+THRESHOLD = 90
 
 
 def scanner(opts):
@@ -53,7 +54,14 @@ def scanner(opts):
             info('Key ID: {}'.format(key))
         print_separator()
 
-    render_template_keys(output, keys)
+    parameters = [
+        {
+            'name': 'Age Threshold',
+            'value': THRESHOLD
+        }
+    ]
+
+    render_template_keys(output, keys, parameters)
 
 
 if __name__ == '__main__':
