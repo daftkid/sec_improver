@@ -4,7 +4,7 @@ from os import environ
 from botocore import exceptions
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 from jinja2 import Template, Environment, FileSystemLoader
-from datetime import datetime
+from datetime import datetime, timezone
 
 TOOLS = {
     'key_scanner': '',
@@ -74,7 +74,7 @@ def get_list_of_users(session):
         error(e)
 
 
-def get_list_of_keys(session, users):
+def get_list_of_keys(session, users, threshold=90):
     try:
         iam = session.client('iam')
 
@@ -87,15 +87,44 @@ def get_list_of_keys(session, users):
             )['AccessKeyMetadata'])
 
         for item in resp:
-            temp = {}
-            temp['key_id'] = item['AccessKeyId']
-            temp['username'] = item['UserName']
-            temp['status'] = item['Status']
-            temp['date_created'] = item['CreateDate']
-            temp['key_age'] = 'test'#calc_key_age(item['CreateDate'])
+            time_delta = datetime.now().replace(tzinfo=timezone.utc) - item['CreateDate']
+            temp = {
+                'key_id': item['AccessKeyId'],
+                'username': item['UserName'],
+                'status': item['Status'],
+                'date_created': item['CreateDate'].strftime('%x %X'),
+                'last_used': key_last_used(iam, item['AccessKeyId']),
+                'key_age': time_delta.days
+            }
+
+            if temp['key_age'] > threshold:
+                temp['action'] = 'Remove'
+            else:
+                temp['action'] = 'Not Required'
+
             res.append(temp)
 
-        return res
+        sorted_res = sorted(res, key=lambda x: x['key_age'], reverse=True)
+
+        return sorted_res
+    except KeyError as e:
+        error('Wrong key: {}'.format(e))
+    except exceptions.ClientError as e:
+        error(e)
+
+
+def key_last_used(client, key_id):
+    try:
+        iam = client
+
+        res = iam.get_access_key_last_used(
+            AccessKeyId=key_id
+        )
+
+        if 'LastUsedDate' in res['AccessKeyLastUsed']:
+            return res['AccessKeyLastUsed']['LastUsedDate'].strftime('%x %X')
+        else:
+            return 'N/A'
     except KeyError as e:
         error('Wrong key: {}'.format(e))
     except exceptions.ClientError as e:
@@ -127,10 +156,10 @@ def print_separator():
     print('===========================================')
 
 
-def render_template_keys(path, data):
+def render_template_keys(path, data, parameters):
     env = Environment(loader=FileSystemLoader(searchpath='./templates/'))
     template = env.get_template('key_report.j2')
 
-    render_template = template.render(data=data, time=datetime.strftime(datetime.now(), '%x %X'))
+    render_template = template.render(data=data, time=datetime.strftime(datetime.now(), '%x %X'), parameters=parameters)
     with open(path, 'w') as result_file:
         result_file.write(render_template)

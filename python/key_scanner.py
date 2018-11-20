@@ -47,7 +47,7 @@ def scanner(opts):
 
     # Listing all IAM keys in account
     if debug_mode: info('Getting list of keys')
-    keys = get_list_of_keys(session, users)
+    keys = get_list_of_keys(session, users, THRESHOLD)
     if debug_mode:
         print_separator()
         for key in keys:
