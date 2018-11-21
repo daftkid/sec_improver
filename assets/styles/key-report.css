@@ -1,0 +1,43 @@
+body {
+  background: #f7f7f7;
+  font-family: sans-serif;
+}
+
+.report_table {
+  border: 1px solid #737373;
+  box-shadow: 0px 0px 25px #adadad;
+  margin: 0 auto;
+  border-collapse: collapse;
+}
+
+table, th, td {
+    border: 1px solid #888;
+}
+
+th {
+  padding: 5px 7px;
+  background: #5b6f59;
+  color: #fff;
+}
+
+td {
+  padding: 7px 13px;
+  font-size: 13px;
+}
+
+tr:hover {
+  background: rgba(116, 173, 80, .3);
+  box-shadow: 1px 1px 1px #4f524f, inset 1px 1px 1px #fefffe;
+}
+
+.wrapper {
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+}
+
+.expired {
+  color: #ec0404;
+}
+
+
