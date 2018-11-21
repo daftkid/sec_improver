@@ -1,5 +1,6 @@
 import boto3
 import json
+import csv
 from os import environ
 from botocore import exceptions
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
@@ -50,7 +51,8 @@ def options_parser(tool):
     parser.add_argument('-e', '--enforce', help='Specify if it is needed to apply changes', action='store_true', dest='enforce', default=False)
 
     parser.add_argument('-i', '--input', help='Path to the file which has to be applied', dest='input')
-    parser.add_argument('-o', '--output', help='Path to file with report', dest='output', default='./keys_report.html')
+    parser.add_argument('-r', '--html-output', help='Path to file with HTML report', dest='html_output', default='./keys_report.html')
+    parser.add_argument('-c', '--csv-output', help='Path to file with CSV report', dest='csv_output', default='./keys_report.csv')
 
     return parser
 
@@ -98,9 +100,9 @@ def get_list_of_keys(session, users, threshold=90):
             }
 
             if temp['key_age'] > threshold:
-                temp['action'] = 'Remove'
+                temp['action'] = 'remove'
             else:
-                temp['action'] = 'Not Required'
+                temp['action'] = 'not required'
 
             res.append(temp)
 
@@ -160,6 +162,37 @@ def render_template_keys(path, data, parameters):
     env = Environment(loader=FileSystemLoader(searchpath='./templates/'))
     template = env.get_template('key_report.j2')
 
-    render_template = template.render(data=data, time=datetime.strftime(datetime.now(), '%x %X'), parameters=parameters)
+    now = datetime.now()
+
+    render_template = template.render(data=data, time=datetime.strftime(now, '%x %X'), parameters=parameters)
+    if 'html' not in path:
+        path = '{}/keys_report_{}.html'.format(path, datetime.strftime(now, '%Y-%m-%d_%H-%M'))
     with open(path, 'w') as result_file:
         result_file.write(render_template)
+
+    info('HTML Report has been generated! Please review the file {}'.format(path))
+    return path
+
+
+def write_to_csv(path, data):
+    if not len(data):
+        warn('Input data for writing into CSV file is empty! CSV will not be written')
+        return ''
+    if 'csv' not in path:
+        path = '{}/keys_report_{}.csv'.format(path, datetime.strftime(datetime.now(), '%Y-%m-%d_%H-%M'))
+    with open(path, 'w') as csv_file:
+        writer = csv.DictWriter(csv_file, fieldnames=data[0].keys())
+        writer.writeheader()
+
+        for row in data:
+            writer.writerow(row)
+
+    info('CSV Report has been generated! Please review the file {}'.format(path))
+    return path
+
+
+def generate_parameter(key, value):
+    return {
+        'name': key,
+        'value': value
+    }

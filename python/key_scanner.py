@@ -21,7 +21,8 @@ def scanner(opts):
     debug_mode = opts.debug
 
     input = opts.input
-    output = opts.output
+    html_output = opts.html_output
+    csv_output = opts.csv_output
     enforce = opts.enforce
 
     if enforce:
@@ -54,14 +55,13 @@ def scanner(opts):
             info('Key ID: {}'.format(key))
         print_separator()
 
-    parameters = [
-        {
-            'name': 'Age Threshold',
-            'value': THRESHOLD
-        }
-    ]
+    parameters = [generate_parameter('Age Threshold', THRESHOLD)]
 
-    render_template_keys(output, keys, parameters)
+    # Write data to CSV file
+    csv_path = write_to_csv(csv_output, keys)
+    parameters.append(generate_parameter('CSV report file', csv_path))
+    # Generate and write HTML report
+    render_template_keys(html_output, keys, parameters)
 
 
 if __name__ == '__main__':
