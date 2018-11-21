@@ -76,6 +76,26 @@ def get_list_of_users(session):
         error(e)
 
 
+def get_list_of_sgs(session):
+    try:
+        ec2 = session.client('ec2')
+
+        paginator = ec2.get_paginator('describe_security_groups')
+
+        resp = paginator.paginate()
+
+        sgs = []
+
+        for page in resp:
+            for sg in page['SecurityGroups']:
+                sgs.append(sg)
+
+        return sgs
+
+    except Exception as e:
+        error(e)
+
+
 def get_list_of_keys(session, users, threshold=90):
     try:
         iam = session.client('iam')
@@ -113,6 +133,51 @@ def get_list_of_keys(session, users, threshold=90):
         error('Wrong key: {}'.format(e))
     except exceptions.ClientError as e:
         error(e)
+
+
+def parse_sgs(sgs):
+    res = []
+
+    try:
+        for sg in sgs:
+            temp = {}
+            temp['sg_id'] = sg['GroupId']
+            temp['sg_name'] = sg['GroupName']
+            temp['description'] = sg['Description']
+            temp['vpc_id'] = sg['VpcId']
+            temp['rules_ingress'] = parse_rules(sg['IpPermissions'])
+            temp['rules_egress'] = parse_rules(sg)
+
+            res.append(temp)
+
+        return res
+    except Exception as e:
+        error(e)
+
+
+def parse_rules(rules):
+    res = []
+    for rule in rules:
+        if rule['IpProtocol'] == '-1':
+            continue
+
+        t_temp = {}
+        if 'FromPort' in rule:
+            t_temp['from_port'] = rule['FromPort']
+        else:
+            t_temp['from_port'] = 'N/A'
+        if 'ToPort' in rule:
+            t_temp['to_port'] = rule['ToPort']
+        else:
+            t_temp['to_port'] = 'N/A'
+        t_temp['protocol'] = rule['IpProtocol']
+
+        t_temp['cidrs'] = []
+        for cidr in rule['IpRanges']:
+            t_temp['cidrs'].append(cidr['CidrIp'])
+        res.append(t_temp)
+
+        return res
 
 
 def key_last_used(client, key_id):
