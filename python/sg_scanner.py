@@ -20,8 +20,14 @@ def scanner(opts):
     debug_mode = opts.debug
 
     input = opts.input
-    html_output = opts.html_output
-    csv_output = opts.csv_output
+    if not opts.html_output:
+        error('Please specify path to HTML output file!')
+    else:
+        html_output = opts.html_output
+    if not opts.csv_output:
+        error('Please specify path to CSV output file!')
+    else:
+        csv_output = opts.csv_output
     enforce = opts.enforce
 
     if enforce:
@@ -48,6 +54,8 @@ def scanner(opts):
     # Parsing the data
     if debug_mode: info('Parsing data')
     sec_groups = parse_sgs(sgs)
+
+    render_template_sgs(html_output, sec_groups)
 
     print(json.dumps(sec_groups, indent=4))
 
