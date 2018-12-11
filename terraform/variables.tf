@@ -20,5 +20,5 @@ variable "runtime" {
 
 variable "lambda_log_retention_period" {
   description = "The number of days for storing logs from Lambda functions"
-  default     = 10
+  default     = 14
 }
