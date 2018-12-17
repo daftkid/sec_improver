@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Security Groups Scanner Report page</title>
+    <link rel="stylesheet" type="text/css" href="https://codepen.io/daftkid/pen/ZmKPrK.css">
+</head>
+<body>
+    <div class="wrapper">
+        <h1>Report collected for {{ time }}</h1>
+    </div>
+    {% for obj in data %}
+    {% if obj['rules_ingress']|length + obj['rules_egress']|length > 0 %}
+    <div>
+        <table class="report_table">
+            <tr>
+                <th>SG ID</th>
+                <th>SG Name</th>
+                <th>SG Description</th>
+                <th>VPC ID</th>
+                <th>Rule Type</th>
+                <th>Rule Protocol</th>
+                <th>Rule Ports</th>
+                <th>Rule IP Range</th>
+                <th>Recommended Action</th>
+            </tr>
+            <tr >
+                <td rowspan="{{ obj['rules_ingress']|length + obj['rules_egress']|length + 1}}">{{ obj['sg_id'] }}</td>
+                <td rowspan="{{ obj['rules_ingress']|length + obj['rules_egress']|length + 1}}">{{ obj['sg_name'] }}</td>
+                <td rowspan="{{ obj['rules_ingress']|length + obj['rules_egress']|length + 1}}">{{ obj['description'] }}</td>
+                <td rowspan="{{ obj['rules_ingress']|length + obj['rules_egress']|length + 1}}">{{ obj['vpc_id'] }}</td>
+            </tr>
+                {% for rule in obj['rules_ingress'] %}
+                <tr>
+                    <td>ingress</td>
+                    <td>{{ rule['protocol'] }}</td>
+                    <td>{{ rule['from_port'] }} - {{ rule['to_port'] }}</td>
+                    <td>
+                        {% for cidr in rule['cidrs'] %}
+                        <table>
+                            <tr>
+                                <td>{{ cidr }}</td>
+                            </tr>
+                        </table>
+                        {% endfor %}
+                    </td>
+                </tr>
+                {% endfor %}
+                {% for rule in obj['rules_egress'] %}
+                <tr>
+                    <td>egress</td>
+                    <td>{{ rule['protocol'] }}</td>
+                    <td>{{ rule['from_port'] }} - {{ rule['to_port'] }}</td>
+                    <td>
+                        {% for cidr in rule['cidrs'] %}
+                        {{ cidr }},
+                        {% endfor %}
+                    </td>
+                </tr>
+                {% endfor %}
+        </table>
+        <p></p>
+        {% endif %}
+    </div>
+    {% endfor %}
+</body>
+</html>

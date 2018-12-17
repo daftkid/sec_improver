@@ -51,8 +51,8 @@ def options_parser(tool):
     parser.add_argument('-e', '--enforce', help='Specify if it is needed to apply changes', action='store_true', dest='enforce', default=False)
 
     parser.add_argument('-i', '--input', help='Path to the file which has to be applied', dest='input')
-    parser.add_argument('-r', '--html-output', help='Path to file with HTML report', dest='html_output', default='./keys_report.html')
-    parser.add_argument('-c', '--csv-output', help='Path to file with CSV report', dest='csv_output', default='./keys_report.csv')
+    parser.add_argument('-r', '--html-output', help='Path to file with HTML report', dest='html_output')
+    parser.add_argument('-c', '--csv-output', help='Path to file with CSV report', dest='csv_output')
 
     return parser
 
@@ -71,6 +71,26 @@ def get_list_of_users(session):
                 users.append(user['UserName'])
 
         return users
+
+    except Exception as e:
+        error(e)
+
+
+def get_list_of_sgs(session):
+    try:
+        ec2 = session.client('ec2')
+
+        paginator = ec2.get_paginator('describe_security_groups')
+
+        resp = paginator.paginate()
+
+        sgs = []
+
+        for page in resp:
+            for sg in page['SecurityGroups']:
+                sgs.append(sg)
+
+        return sgs
 
     except Exception as e:
         error(e)
@@ -113,6 +133,51 @@ def get_list_of_keys(session, users, threshold=90):
         error('Wrong key: {}'.format(e))
     except exceptions.ClientError as e:
         error(e)
+
+
+def parse_sgs(sgs):
+    res = []
+
+    try:
+        for sg in sgs:
+            temp = {}
+            temp['sg_id'] = sg['GroupId']
+            temp['sg_name'] = sg['GroupName']
+            temp['description'] = sg['Description']
+            temp['vpc_id'] = sg['VpcId']
+            temp['rules_ingress'] = parse_rules(sg['IpPermissions'])
+            temp['rules_egress'] = parse_rules(sg['IpPermissionsEgress'])
+
+            res.append(temp)
+
+        return res
+    except Exception as e:
+        error(e)
+
+
+def parse_rules(rules):
+    res = []
+    for rule in rules:
+        if rule['IpProtocol'] == '-1':
+            continue
+
+        t_temp = {}
+        if 'FromPort' in rule:
+            t_temp['from_port'] = rule['FromPort']
+        else:
+            t_temp['from_port'] = 'N/A'
+        if 'ToPort' in rule:
+            t_temp['to_port'] = rule['ToPort']
+        else:
+            t_temp['to_port'] = 'N/A'
+        t_temp['protocol'] = rule['IpProtocol']
+
+        t_temp['cidrs'] = []
+        for cidr in rule['IpRanges']:
+            t_temp['cidrs'].append(cidr['CidrIp'])
+        res.append(t_temp)
+
+    return res
 
 
 def key_last_used(client, key_id):
@@ -167,6 +232,22 @@ def render_template_keys(path, data, parameters):
     render_template = template.render(data=data, time=datetime.strftime(now, '%x %X'), parameters=parameters)
     if 'html' not in path:
         path = '{}/keys_report_{}.html'.format(path, datetime.strftime(now, '%Y-%m-%d_%H-%M'))
+    with open(path, 'w') as result_file:
+        result_file.write(render_template)
+
+    info('HTML Report has been generated! Please review the file {}'.format(path))
+    return path
+
+
+def render_template_sgs(path, data):
+    env = Environment(loader=FileSystemLoader(searchpath='./templates/'))
+    template = env.get_template('sg_report.j2')
+
+    now = datetime.now()
+
+    render_template = template.render(data=data, time=datetime.strftime(now, '%x %X'))
+    if 'html' not in path:
+        path = '{}/sg_report_{}.html'.format(path, datetime.strftime(now, '%Y-%m-%d_%H-%M'))
     with open(path, 'w') as result_file:
         result_file.write(render_template)
 
